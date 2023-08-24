@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <base target="_top">
+  <style>
+    #loadingSpinner {
+      display: none
+    }
+    .custom-container {
+      border: 1px solid #ddd; /* Add a border */
+      border-radius: 10px;   /* Add border radius */
+      padding: 20px;         /* Add some padding for spacing */
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-4 custom-container">
+    <form id="csvForm">
+      <div class="form-group">
+        <label for="csvInput">Select CSV File:</label>
+        <input type="file" class="form-control-file" id="csvInput" accept=".csv">
+      </div>
+      <button type="button" class="btn btn-primary" id="processButton">Process CSV</button>
+      <div id="loadingSpinner" class="m-2 align-items-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+        <span class="ml-2">Loading...</span>
+      </div>
+
+    </form>
+  </div>
+  <script>
+  document.getElementById('processButton').addEventListener('click', function() {
+    var fileInput = document.getElementById('csvInput');
+    var file = fileInput.files[0];
+    if (file) {
+      disableProcessButton();
+      showLoadingSpinner();
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var csvData = event.target.result;
+        google.script.run.withSuccessHandler(hideLoadingSpinner).withFailureHandler(showError).importData(csvData);
+      };
+      reader.readAsText(file);
+    }
+  });
+
+  function disableProcessButton() {
+    var processButton = document.getElementById('processButton');
+    processButton.disabled = true;
+  }
+
+  function showLoadingSpinner() {
+    var loadingSpinner = document.getElementById('loadingSpinner');
+    loadingSpinner.style.display = 'flex';
+  }
+
+  function hideLoadingSpinner() {
+    var loadingSpinner = document.getElementById('loadingSpinner');
+    loadingSpinner.style.display = 'none';
+    var processButton = document.getElementById('processButton');
+    processButton.disabled = false;
+  }
+
+  function showError(error) {
+    hideLoadingSpinner();
+    var errorDiv = document.createElement('div');
+    errorDiv.classList.add('alert', 'alert-danger', 'mt-2');
+    errorDiv.textContent = error.message;
+    var form = document.getElementById('csvForm');
+    form.appendChild(errorDiv);
+  }
+
+</script>
+
+</body>
+</html>
